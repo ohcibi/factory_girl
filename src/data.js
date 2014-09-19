@@ -3,6 +3,13 @@
 
   var container = {};
   var sequences = {};
+  
+  function setDefaultOptions(opts, name) {
+    opts.primaryKeySequenceName = name + "_primary_key";
+    if (!opts.primaryKey) {
+      opts.primaryKey = "id";
+    }
+  }
 
   libAPI.datum = new Data();
 
@@ -17,8 +24,29 @@
   };
 
   Data.prototype.setDefined = function(name, opts, defined) {
+    if (opts.primaryKey !== false) {
+      if (!opts.primaryKey) {
+        opts.primaryKey = "id";
+      }
+      var primaryKeySequence;
+      setDefaultOptions(opts, name);
+      if (!opts.primaryKeySequence) {
+        primaryKeySequence = function(id) { return id; };
+      } else {
+        primaryKeySequence = opts.primaryKeySequence;
+        delete opts.primaryKeySequence;
+      }
+
+      this.setSequence(opts.primaryKeySequenceName, primaryKeySequence);
+    }
+
     this.setAlias(opts, defined);
-    container[name] = {factories: [], options: opts, defined: defined};
+
+    container[name] = {
+      factories: [],
+      options: opts,
+      defined: defined
+    };
   };
 
   Data.prototype.setAlias = function(opts, defined) {
@@ -49,6 +77,22 @@
     container[name]['factories'].push(factory);
     return factory;
   };
+
+  Data.prototype.getPrimaryKeys = function(name) {
+    this.checkDefined(name);
+
+    var factories, options;
+
+    factories = container[name]['factories'];
+    options = container[name]['options'];
+
+    if (!options.primaryKey) {
+      return [];
+    }
+    return factories.map(function(factory) {
+        return factory[options.primaryKey]
+    });
+  }
 
   Data.prototype.remove = function(name) {
     this.checkDefined(name);

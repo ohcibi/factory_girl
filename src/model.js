@@ -101,10 +101,47 @@
     var name = obj.getName();
     var opts = libAPI.datum.getOptions(name);
     var define = libAPI.datum.getDefined(name);
+    var pk = !!opts.primaryKey;
 
     define.call(obj);
+    if (pk) {
+      assertPKNotSet(obj, opts.primaryKey);
+    }
+
     libAPI.utils.merge(obj, attrs);
+
+    if (pk) {
+      definePrimaryKey(name, obj, opts);
+    }
+
     setInherit(obj, opts.inherit);
+  }
+
+  function definePrimaryKey(name, obj, opts) {
+    var primaryKeys = libAPI.datum.getPrimaryKeys(name), latestPK, newPK;
+
+    if (!obj[opts.primaryKey]) {
+      primaryKeys.sort();
+      latestPK = primaryKeys[primaryKeys.length-1];
+
+      while ((newPK = libAPI.datum.nextSequence(opts.primaryKeySequenceName)) <= latestPK);
+
+      obj[opts.primaryKey] = newPK;
+    }
+
+    assertPKUnique(name, obj, opts.primaryKey, primaryKeys);
+  }
+
+  function assertPKNotSet(obj, primaryKey) {
+    if (obj[primaryKey]) {
+      throw new Error('You may not define a value for the primary key attribute "' + primaryKey + '"');
+    }
+  }
+
+  function assertPKUnique(name, obj, primaryKey, primaryKeys) {
+    if (primaryKeys.indexOf(obj[primaryKey]) >= 0) {
+      throw new Error('Primary Key "' + obj[primaryKey] + '" for factory "' + name + '" already exists');
+    }
   }
 
   function setInherit(obj, inherit) {

@@ -6,30 +6,30 @@ defineFactoryGirl = function(){
       return 'id_' + i;
     });
 
-  	FactoryGirl.define('user', {alias: 'account'}, function() {
+  	FactoryGirl.define('user', {primaryKey: false, alias: 'account'}, function() {
   		this.id = 1;
   		this.name = 'Minh Quy';
   	})
 
-  	FactoryGirl.define('visa', {alias: ['master', 'paypal']}, function() {
+  	FactoryGirl.define('visa', {primaryKey: false, alias: ['master', 'paypal']}, function() {
   		this.id = 3;
   		this.label = 'secret';
   		this.hasOne('user');
   	})
 
-  	FactoryGirl.define('profile', function() {
+  	FactoryGirl.define('profile', {primaryKey: false}, function() {
   		this.sequence('s_id', 'id');
   		this.emotion = 'Happy';
   		this.belongsTo('user');
   	})
 
-  	FactoryGirl.define('place', function() {
+  	FactoryGirl.define('place', {primaryKey: false}, function() {
   		this.id = 4;
   		this.name = 'Earth';
   		this.hasMany('users', 'user', 2);
   	})
 
-  	FactoryGirl.define('plateau', {inherit: 'place'}, function() {
+  	FactoryGirl.define('plateau', {primaryKey: false, inherit: 'place'}, function() {
   		this.id = 5;
   		this.type = 'plateau';
   	})
